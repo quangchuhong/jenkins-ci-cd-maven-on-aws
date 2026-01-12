@@ -273,7 +273,8 @@ timeout(time: 5, unit: 'MINUTES') {
    1. Build ứng dụng bằng Maven (tạo JAR),
    2. Đóng gói JAR vào image runtime nhẹ (JRE).
 - Ví dụ lệnh:
-```docker build -t <ECR_REPO>:<IMAGE_TAG> .
+```bash
+docker build -t <ECR_REPO>:<IMAGE_TAG> .
 ```
 - **Ý nghĩa**:
    - Chuẩn hóa môi trường chạy (runtime) dưới dạng container.
