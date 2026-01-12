@@ -249,7 +249,7 @@ verify: Chạy full Maven lifecycle:
   -Dsonar.projectKey=... \
   -Dsonar.projectVersion=...
   ```
-  - **SonarQube thực hiện**:
+- **SonarQube thực hiện**:
    - Phân tích bugs, vulnerabilities, code smells.
    - Tính toán code coverage (nếu tích hợp JaCoCo).
    - Kiểm tra duplication, complexity, technical debt.
