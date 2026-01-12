@@ -69,4 +69,147 @@ ENTRYPOINT ["java", "-jar", "app.jar"]
 Ý nghĩa:
 - Stage 1: Build source thành file JAR (artifact) bằng Maven.
 - Stage 2: Image runtime nhẹ hơn, chỉ chứa JAR đã build → giảm kích thước image & tăng bảo mật.
+---
+## 4. Jenkinsfile – CI pipeline
+```bash
+pipeline {
+    agent any
+
+    tools {
+        maven 'Maven-3'
+        jdk   'JDK-17'
+    }
+
+    environment {
+        AWS_REGION      = "ap-southeast-1"
+        AWS_ACCOUNT_ID  = "123456789012"
+        ECR_REPO        = "${AWS_ACCOUNT_ID}.dkr.ecr.${AWS_REGION}.amazonaws.com/my-maven-app"
+
+        SONARQUBE_SERVER   = "sonarqube"        // tên cấu hình SonarQube trong Jenkins
+        SONAR_PROJECT_KEY  = "my-maven-app"
+
+        APP_VERSION    = "1.0.0"
+        GIT_SHORT      = "${env.GIT_COMMIT?.take(7)}"
+    }
+
+    stages {
+        stage('Checkout from GitLab') {
+            steps {
+                checkout scm
+            }
+        }
+
+        stage('Build & Test (Maven)') {
+            steps {
+                sh 'mvn -B clean verify'
+            }
+            post {
+                always {
+                    junit 'target/surefire-reports/*.xml'
+                }
+            }
+        }
+
+        stage('SonarQube Analysis') {
+            steps {
+                withSonarQubeEnv("${SONARQUBE_SERVER}") {
+                    sh """
+                    mvn sonar:sonar \
+                      -Dsonar.projectKey=${SONAR_PROJECT_KEY} \
+                      -Dsonar.projectVersion=${APP_VERSION}-${GIT_SHORT}
+                    """
+                }
+            }
+        }
+
+        stage('Quality Gate') {
+            steps {
+                script {
+                    timeout(time: 5, unit: 'MINUTES') {
+                        def qg = waitForQualityGate()
+                        if (qg.status != 'OK') {
+                            error "Quality Gate failed: ${qg.status}"
+                        }
+                    }
+                }
+            }
+        }
+
+        stage('Build Docker Image') {
+            steps {
+                script {
+                    env.IMAGE_TAG = "${APP_VERSION}-${GIT_SHORT}"
+                }
+                sh """
+                docker build -t ${ECR_REPO}:${IMAGE_TAG} .
+                """
+            }
+        }
+
+        stage('Trivy Scan Docker Image') {
+            steps {
+                sh """
+                trivy image --exit-code 1 \
+                  --severity CRITICAL,HIGH \
+                  ${ECR_REPO}:${IMAGE_TAG}
+                """
+            }
+        }
+
+        stage('Push Image to ECR') {
+            steps {
+                withAWS(region: "${AWS_REGION}", credentials: 'aws-jenkins-creds') {
+                    sh """
+                    aws ecr get-login-password --region ${AWS_REGION} | \
+                      docker login --username AWS --password-stdin ${AWS_ACCOUNT_ID}.dkr.ecr.${AWS_REGION}.amazonaws.com
+
+                    docker push ${ECR_REPO}:${IMAGE_TAG}
+                    """
+                }
+            }
+        }
+
+        stage('Update Helm values (GitOps)') {
+            steps {
+                withCredentials([usernamePassword(
+                    credentialsId: 'gitlab-gitops-creds',
+                    usernameVariable: 'GIT_USER',
+                    passwordVariable: 'GIT_PASS'
+                )]) {
+                    sh """
+                    # Clone chính repo này hoặc repo gitops riêng, ví dụ dùng chính app-repo:
+                    git config --global user.email "ci@company.local"
+                    git config --global user.name "jenkins-ci"
+
+                    # Nếu dùng repo riêng:
+                    # rm -rf gitops-repo
+                    # git clone https://${GIT_USER}:${GIT_PASS}@gitlab.com/your-group/gitops-repo.git
+                    # cd gitops-repo
+
+                    cd helm/my-maven-app
+
+                    # Cập nhật image.tag trong values.yaml
+                    yq e '.image.tag = "${IMAGE_TAG}"' -i values.yaml
+
+                    cd ../../
+                    git add helm/my-maven-app/values.yaml
+                    git commit -m "Update image tag to ${IMAGE_TAG}"
+                    git push https://${GIT_USER}:${GIT_PASS}@gitlab.com/your-group/your-app-repo.git HEAD:main
+                    """
+                }
+            }
+        }
+    }
+
+    post {
+        success {
+            echo "CI pipeline OK – image ${ECR_REPO}:${IMAGE_TAG} ready & Helm values updated."
+        }
+        failure {
+            echo "CI pipeline FAILED – kiểm tra log Jenkins stages."
+        }
+    }
+}
+```
+
 
