@@ -317,3 +317,16 @@ docker push <ECR_REPO>:<IMAGE_TAG>
    - Mỗi build có một IMAGE_TAG duy nhất:
       - Dễ dàng trace từ container đang chạy → commit/source tương ứng.
       - Hỗ trợ rollback nhanh khi có sự cố.
+---
+### 5.7. Stage: Update Helm values (GitOps)
+- Sử dụng yq chỉnh helm/my-maven-app/values.yaml:
+   - image.tag = APP_VERSION-GIT_SHORT.
+- Commit & push ngược về GitLab (hoặc repo GitOps riêng).
+- **Ý nghĩa**:
+   - Biến Git repo thành source of truth cho deployment.
+   - Tách bạch CI (Jenkins) và CD (Argo CD):
+      - Jenkins chỉ build, test, scan, cập nhật Git.
+      - Argo CD tự deploy theo Git (GitOps).
+---
+### 6. Argo CD – CD lên EKS
+continute...
