@@ -231,5 +231,12 @@ Lệnh chính:
 ```bash
 mvn clean verify
 
+clean: Xóa thư mục target cũ → đảm bảo build sạch.
+verify: Chạy full Maven lifecycle:
+compile → biên dịch mã nguồn.
+test → chạy unit/integration tests.
+package → đóng gói (JAR/WAR).
+verify → thực thi các bước kiểm tra bổ sung (nếu cấu hình).
+
 
 
