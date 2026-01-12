@@ -280,3 +280,22 @@ docker build -t <ECR_REPO>:<IMAGE_TAG> .
    - Chuẩn hóa môi trường chạy (runtime) dưới dạng container.
    - Đảm bảo artifact (JAR) đã test sẽ là thứ được deploy (không rebuild ở chỗ khác).
    - Tách biệt môi trường build (Maven + JDK full) và runtime (JRE nhẹ, ít bề mặt tấn công hơn).
+---
+### 5.5. Stage: Trivy Scan Docker Image
+- Jenkins chạy:
+```bash
+trivy image --exit-code 1 \
+  --severity CRITICAL,HIGH \
+  <ECR_REPO>:<IMAGE_TAG>
+```
+- Trivy kiểm tra:
+   - Lỗ hổng bảo mật (vulnerabilities) trong:
+   - OS packages (Alpine, Debian, Ubuntu…),
+   - Thư viện ngôn ngữ (Java dependencies, v.v.).a
+
+- **Ý nghĩa**:
+   - --exit-code 1 → nếu phát hiện vulnerabilities CRITICAL hoặc HIGH:
+   - Stage fail,
+   - Pipeline dừng.
+- Đảm bảo image an toàn trước khi được push lên registry & deploy.
+- Áp dụng nguyên tắc DevSecOps / shift-left security: bắt lỗi bảo mật càng sớm càng tốt.
