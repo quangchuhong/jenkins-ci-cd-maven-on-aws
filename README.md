@@ -46,6 +46,7 @@ app-repo/
             ├── deployment.yaml
             ├── service.yaml
             └── ingress.yaml (nếu dùng)
+```
 ---
 ## 3. Dockerfile (multi-stage build cho Maven)
 ### Stage 1: Build với Maven
