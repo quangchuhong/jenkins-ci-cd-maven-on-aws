@@ -299,3 +299,21 @@ trivy image --exit-code 1 \
       - Pipeline dừng.
    - Đảm bảo image an toàn trước khi được push lên registry & deploy.
    - Áp dụng nguyên tắc DevSecOps / shift-left security: bắt lỗi bảo mật càng sớm càng tốt.
+---
+### 5.6. Stage: Push Image to ECR
+- Các bước chính:
+   1. Đăng nhập vào AWS ECR bằng AWS CLI.
+   2. Push image với tag duy nhất (version + commit hash).
+Ví dụ:
+```bash
+aws ecr get-login-password --region <REGION> | \
+  docker login --username AWS --password-stdin <ACCOUNT_ID>.dkr.ecr.<REGION>.amazonaws.com
+
+docker push <ECR_REPO>:<IMAGE_TAG>
+
+```
+- **Ý nghĩa**:
+   - Lưu trữ image trong AWS ECR – registry riêng, an toàn, tích hợp tốt với EKS.
+   - Mỗi build có một IMAGE_TAG duy nhất:
+      - Dễ dàng trace từ container đang chạy → commit/source tương ứng.
+      - Hỗ trợ rollback nhanh khi có sự cố.
