@@ -211,5 +211,25 @@ pipeline {
     }
 }
 ```
+## 6. Ý nghĩa chi tiết từng bước trong Workflow
+
+### 6.1. GitLab → Jenkins (Trigger)
+
+- **Ý nghĩa**: Khi dev push code/merge request, GitLab gửi webhook tới Jenkins để khởi chạy pipeline.
+- Đảm bảo mọi thay đổi đều:
+  - Được **build**,
+  - Được **test**,
+  - Được **scan** (chất lượng + bảo mật)
+  trước khi có cơ hội được deploy.
+
+---
+
+### 6.2. Stage: `Build & Test (Maven)`
+
+Lệnh chính:
+
+```bash
+mvn clean verify
+
 
 
