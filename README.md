@@ -233,14 +233,14 @@ mvn clean verify
 
 clean: Xóa thư mục target cũ → đảm bảo build sạch.
 verify: Chạy full Maven lifecycle:
-- compile → biên dịch mã nguồn.
-- test → chạy unit/integration tests.
-- package → đóng gói (JAR/WAR).
-- verify → thực thi các bước kiểm tra bổ sung (nếu cấu hình).
+   - compile → biên dịch mã nguồn.
+   - test → chạy unit/integration tests.
+   - package → đóng gói (JAR/WAR).
+   - verify → thực thi các bước kiểm tra bổ sung (nếu cấu hình).
 ```
 - **Ý nghĩa**:
-- Đảm bảo code biên dịch được và các test đều pass.
-- Nếu build hoặc test fail → dừng pipeline sớm, không tiếp tục sang bước scan, build image, deploy
+   - Đảm bảo code biên dịch được và các test đều pass.
+   - Nếu build hoặc test fail → dừng pipeline sớm, không tiếp tục sang bước scan, build image, deploy
 ---
 ### 5.3. Stage: SonarQube Analysis & Quality Gate
 - Jenkin run:
@@ -254,4 +254,28 @@ verify: Chạy full Maven lifecycle:
    - Tính toán code coverage (nếu tích hợp JaCoCo).
    - Kiểm tra duplication, complexity, technical debt.
 
-
+- Sau đó Jenkins chạy:
+```bash
+timeout(time: 5, unit: 'MINUTES') {
+    def qg = waitForQualityGate()
+    if (qg.status != 'OK') {
+        error "Quality Gate failed: ${qg.status}"
+    }
+}
+```
+- **Ý nghĩa**:
+   - waitForQualityGate đóng vai trò như một “cửa chặn” chất lượng:
+   - Nếu Quality Gate không đạt (ví dụ: quá nhiều vulnerabilities, coverage thấp) → pipeline fail.
+   - Giúp ngăn chặn code kém chất lượng lọt vào các bước sau (build image, deploy).
+---
+### 5.4. Stage: Build Docker Image
+- Jenkins dùng Dockerfile multi-stage để:
+   1. Build ứng dụng bằng Maven (tạo JAR),
+   2. Đóng gói JAR vào image runtime nhẹ (JRE).
+- Ví dụ lệnh:
+```docker build -t <ECR_REPO>:<IMAGE_TAG> .
+```
+- **Ý nghĩa**:
+   - Chuẩn hóa môi trường chạy (runtime) dưới dạng container.
+   - Đảm bảo artifact (JAR) đã test sẽ là thứ được deploy (không rebuild ở chỗ khác).
+   - Tách biệt môi trường build (Maven + JDK full) và runtime (JRE nhẹ, ít bề mặt tấn công hơn).
