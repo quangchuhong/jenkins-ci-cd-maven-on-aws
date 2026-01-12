@@ -67,7 +67,6 @@ EXPOSE 8080
 ENTRYPOINT ["java", "-jar", "app.jar"]
 ```
 Ý nghĩa:
-
-Stage 1: Build source thành file JAR (artifact) bằng Maven.
-Stage 2: Image runtime nhẹ hơn, chỉ chứa JAR đã build → giảm kích thước image & tăng bảo mật.
+- Stage 1: Build source thành file JAR (artifact) bằng Maven.
+- Stage 2: Image runtime nhẹ hơn, chỉ chứa JAR đã build → giảm kích thước image & tăng bảo mật.
 
