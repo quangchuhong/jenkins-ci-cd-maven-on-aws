@@ -49,15 +49,17 @@ app-repo/
 ```
 ---
 ## 3. Dockerfile (multi-stage build cho Maven)
+
+Stage 1: Build với Maven
 ```
-### Stage 1: Build với Maven
 FROM maven:3.9.9-eclipse-temurin-17 AS builder
 WORKDIR /build
 COPY pom.xml .
 COPY src ./src
 RUN mvn -B clean package -DskipTests
-
-### Stage 2: Runtime image
+```
+Stage 2: Runtime image
+```
 FROM eclipse-temurin:17-jre
 WORKDIR /app
 COPY --from=builder /build/target/*.jar app.jar
