@@ -295,7 +295,7 @@ trivy image --exit-code 1 \
 
 - **Ý nghĩa**:
    - --exit-code 1 → nếu phát hiện vulnerabilities CRITICAL hoặc HIGH:
-   - Stage fail,
-   - Pipeline dừng.
-- Đảm bảo image an toàn trước khi được push lên registry & deploy.
-- Áp dụng nguyên tắc DevSecOps / shift-left security: bắt lỗi bảo mật càng sớm càng tốt.
+      - Stage fail,
+      - Pipeline dừng.
+   - Đảm bảo image an toàn trước khi được push lên registry & deploy.
+   - Áp dụng nguyên tắc DevSecOps / shift-left security: bắt lỗi bảo mật càng sớm càng tốt.
