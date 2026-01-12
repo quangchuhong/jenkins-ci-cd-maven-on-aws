@@ -211,9 +211,9 @@ pipeline {
     }
 }
 ```
-## 6. Ý nghĩa chi tiết từng bước trong Workflow
+## 5. Ý nghĩa chi tiết từng bước trong Workflow
 
-### 6.1. GitLab → Jenkins (Trigger)
+### 5.1. GitLab → Jenkins (Trigger)
 
 - **Ý nghĩa**: Khi dev push code/merge request, GitLab gửi webhook tới Jenkins để khởi chạy pipeline.
 - Đảm bảo mọi thay đổi đều:
@@ -224,7 +224,7 @@ pipeline {
 
 ---
 
-### 6.2. Stage: `Build & Test (Maven)`
+### 5.2. Stage: `Build & Test (Maven)`
 
 Lệnh chính:
 
@@ -241,5 +241,17 @@ verify: Chạy full Maven lifecycle:
 - **Ý nghĩa**:
 - Đảm bảo code biên dịch được và các test đều pass.
 - Nếu build hoặc test fail → dừng pipeline sớm, không tiếp tục sang bước scan, build image, deploy
+---
+### 5.3. Stage: SonarQube Analysis & Quality Gate
+- Jenkin run:
+  ```bash
+  mvn sonar:sonar \
+  -Dsonar.projectKey=... \
+  -Dsonar.projectVersion=...
+  ```
+  - **SonarQube thực hiện**:
+   - Phân tích bugs, vulnerabilities, code smells.
+   - Tính toán code coverage (nếu tích hợp JaCoCo).
+   - Kiểm tra duplication, complexity, technical debt.
 
 
