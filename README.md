@@ -237,6 +237,9 @@ compile → biên dịch mã nguồn.
 test → chạy unit/integration tests.
 package → đóng gói (JAR/WAR).
 verify → thực thi các bước kiểm tra bổ sung (nếu cấu hình).
-
+```
+- **Ý nghĩa**:
+- Đảm bảo code biên dịch được và các test đều pass.
+- Nếu build hoặc test fail → dừng pipeline sớm, không tiếp tục sang bước scan, build image, deploy
 
 
